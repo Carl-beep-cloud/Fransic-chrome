@@ -1,3 +1,4 @@
+let intervalId = null;
 
 let folderPath = "images/";
 
@@ -23,16 +24,68 @@ let array = [
 ];
 
 //? för bilder som jag tryckt på
-let physicsimages = [];
-let physicsimagesnmber = 0;
+let physicsImages = [];
+let physicsImagesnmber = 0;
 
-
-
-setInterval(bruh,500);
-
-function bruh(){
-imageselecter(0,250);
+function startIntervalIfEnabled() {
+    chrome.storage.sync.get("enabled", (data) => {
+        if (data.enabled) {
+            console.log("Feature is enabled");
+            runRandomInterval();
+        } else {
+            console.log("Feature is disabled");
+            if (intervalId) {
+                clearTimeout(intervalId);
+                intervalId = null;
+            }
+        }
+    });
 }
+
+
+function runRandomInterval(speedMode) {
+    if (intervalId) {
+        clearTimeout(intervalId);
+    }
+
+    if (!speedMode) {
+        chrome.storage.sync.get("speedMode", (data) => {
+            runRandomInterval(data.speedMode || "normal");
+        });
+        return;
+    }
+
+    let randomTime;
+    switch (speedMode) {
+        case "fast":
+            randomTime = Math.floor(Math.random() * (15000 - 5000) + 10000); //! 10-20s
+            break;
+        case "slow":
+            randomTime = Math.floor(Math.random() * (600000 - 120000) + 120000); //! 2-10min
+            break;
+        default:
+            randomTime = Math.floor(Math.random() * (300000 - 60000) + 60000); //! 1-5min
+            break;
+    }
+
+    console.log(`Next image will appear in ${randomTime / 1000} seconds`);
+
+    intervalId = setTimeout(() => {
+        chrome.storage.sync.get("enabled", (data) => {
+            if (data.enabled) {
+                imageselecter(0, 250);
+                runRandomInterval(speedMode); // Schedule the next run
+            } else {
+                console.log("Interval stopped because feature is disabled.");
+                intervalId = null;
+            }
+        });
+    }, randomTime);
+}
+
+
+
+
 
 //! num bestämmer plats
 let num;
@@ -421,6 +474,7 @@ function imageselecter(num, charachternum) {
     }
 }
 
+startIntervalIfEnabled();
 
 
 
@@ -495,13 +549,13 @@ document.addEventListener("keydown", function (event) {
 
 
 function deletephysics() {
-    physicsimages.forEach(obj => {
+    physicsImages.forEach(obj => {
         if (document.body.contains(obj.element)) {
             document.body.removeChild(obj.element);
         }
     });
-    physicsimages = [];  // Clear the array
-    physicsimagesnmber = 0; // Reset the counter
+    physicsImages = [];  // Clear the array
+    physicsImagesnmber = 0; // Reset the counter
 }
 
 
@@ -525,7 +579,7 @@ function physics(rndnum) {
     }
 
     else if (rndnum == 2) {
-        let smallarr = ["8", "9","4"];
+        let smallarr = ["4","8", "9"];
         rndnumer = Math.floor(Math.random() * 3)
         let physicsCharacterNum = smallarr[rndnumer];
         physResult = array[physicsCharacterNum];
@@ -542,7 +596,7 @@ function physics(rndnum) {
     phyImage.src = chrome.runtime.getURL(folderPath + physResult);
 
     document.body.appendChild(phyImage);
-    physicsimages.push({
+    physicsImages.push({
         element: phyImage,
         velocityX: (Math.random() - 0.5) * 2.5, //? Slightly reduced initial speed
         velocityY: Math.random() * 3 + 1, //? Reduced fall speed
@@ -573,7 +627,7 @@ function physics(rndnum) {
 function updatePhysics() {
     let currentTime = Date.now();
 
-    physicsimages.forEach((obj) => {
+    physicsImages.forEach((obj) => {
         let img = obj.element;
         let rect = img.getBoundingClientRect();
 
@@ -656,12 +710,12 @@ function updatePhysics() {
 }
 
 function checkCollisions() {
-    for (let i = 0; i < physicsimages.length; i++) {
-        let img1 = physicsimages[i];
+    for (let i = 0; i < physicsImages.length; i++) {
+        let img1 = physicsImages[i];
         let rect1 = img1.element.getBoundingClientRect();
 
-        for (let j = i + 1; j < physicsimages.length; j++) {
-            let img2 = physicsimages[j];
+        for (let j = i + 1; j < physicsImages.length; j++) {
+            let img2 = physicsImages[j];
             let rect2 = img2.element.getBoundingClientRect();
 
             if (
