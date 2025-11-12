@@ -1,5 +1,5 @@
 
-let folderPath = "imagess/";
+let folderPath = "images/";
 
 let array = [
     "basic-pieere.png",
@@ -23,8 +23,8 @@ let array = [
 ];
 
 //? för bilder som jag tryckt på
-let physicsImages = [];
-let physicsImagesnmber = 0;
+let physicsimages = [];
+let physicsimagesnmber = 0;
 
 
 
@@ -65,7 +65,7 @@ function imageselecter(num, charachternum) {
 
    
 
-    img.src = folderPath + result;
+    img.src = chrome.runtime.getURL(folderPath + result);
 
     img.style.width = "100px";
     img.style.zIndex = "10000";
@@ -495,13 +495,13 @@ document.addEventListener("keydown", function (event) {
 
 
 function deletephysics() {
-    physicsImages.forEach(obj => {
+    physicsimages.forEach(obj => {
         if (document.body.contains(obj.element)) {
             document.body.removeChild(obj.element);
         }
     });
-    physicsImages = [];  // Clear the array
-    physicsImagesnmber = 0; // Reset the counter
+    physicsimages = [];  // Clear the array
+    physicsimagesnmber = 0; // Reset the counter
 }
 
 
@@ -542,7 +542,7 @@ function physics(rndnum) {
     phyImage.src = chrome.runtime.getURL(folderPath + physResult);
 
     document.body.appendChild(phyImage);
-    physicsImages.push({
+    physicsimages.push({
         element: phyImage,
         velocityX: (Math.random() - 0.5) * 2.5, //? Slightly reduced initial speed
         velocityY: Math.random() * 3 + 1, //? Reduced fall speed
@@ -573,7 +573,7 @@ function physics(rndnum) {
 function updatePhysics() {
     let currentTime = Date.now();
 
-    physicsImages.forEach((obj) => {
+    physicsimages.forEach((obj) => {
         let img = obj.element;
         let rect = img.getBoundingClientRect();
 
@@ -656,12 +656,12 @@ function updatePhysics() {
 }
 
 function checkCollisions() {
-    for (let i = 0; i < physicsImages.length; i++) {
-        let img1 = physicsImages[i];
+    for (let i = 0; i < physicsimages.length; i++) {
+        let img1 = physicsimages[i];
         let rect1 = img1.element.getBoundingClientRect();
 
-        for (let j = i + 1; j < physicsImages.length; j++) {
-            let img2 = physicsImages[j];
+        for (let j = i + 1; j < physicsimages.length; j++) {
+            let img2 = physicsimages[j];
             let rect2 = img2.element.getBoundingClientRect();
 
             if (
